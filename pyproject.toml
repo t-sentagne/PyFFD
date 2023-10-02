@@ -1,0 +1,14 @@
+[project]
+name = "PyFFD"
+version = "0.0.1"
+authors = [
+  { name="Theo SENTAGNE, ...", email="author@example.com" },
+]
+description = "Tools to create FFD operator for FEM calculation."
+readme = "README.md"
+requires-python = ">=3.11"
+
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
