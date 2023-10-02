@@ -65,12 +65,12 @@ class FFD:
     def OperatorFFD(self, precond=True, limit=1e-10):
         self.limit = limit
         if self.dim == 2:
-            N = Get2dBasisFunctionsAtPts(self.fem[:, 0], self.fem[:, 1], self.knot_vect[0],
-                                         self.knot_vect[1], self.deg, self.deg)
+            N = Get2dBasisFunctionsAtPts(self.n_fem[:, 0], self.n_fem[:, 1], self.knot_vectors[0],
+                                         self.knot_vectors[1], self.deg_s, self.deg_s)
         elif self.dim == 3:
-            N = Get3dBasisFunctionsAtPts(self.fem[:, 0], self.fem[:, 1], self.fem[:, 2],
-                                         self.knot_vect[0], self.knot_vect[1], self.knot_vect[2],
-                                         self.deg, self.deg, self.deg)
+            N = Get3dBasisFunctionsAtPts(self.n_fem[:, 0], self.n_fem[:, 1], self.n_fem[:, 2],
+                                         self.knot_vectors[0], self.knot_vectors[1], self.knot_vectors[2],
+                                         self.deg_s, self.deg_s, self.deg_s)
 
         else:
             raise NameError('Dimension not valid to build the operator.')
