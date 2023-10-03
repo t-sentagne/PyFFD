@@ -1,2 +1,5 @@
-.pyc
-PyFFD/__pychache__
+
+*.pyc
+*.pyc
+
+PyFFD/__pychache__/

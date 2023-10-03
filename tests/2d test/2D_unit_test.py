@@ -4,14 +4,19 @@ Created on Mon Oct  2 18:00:25 2023
 
 @author: SENTAGNE
 """
+import os
+import sys
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.getcwd())))
 
 import PyFFD as pf
 import numpy as np
 import scipy.sparse as sps
+import meshio
 
-n_compress = np.load("FEM_mesh.npz")
-n = n_compress['n']  # Loading of FEM mesh
-Rs_theoric = sps.load_npz("Rs.npz")
+
+mesh = meshio.read("mesh_test.msh")
+n = mesh.points[:,:2]
+Rs_theoric = sps.load_npz("Rs_unit_test.npz")
 
 
 deg_s = 3
