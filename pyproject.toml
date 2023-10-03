@@ -1,10 +1,19 @@
+[build-system]
+requires = [
+    "setuptools>=42",
+    "wheel",
+]
+build-backend = "setuptools.build_meta"
+
+
+
 [project]
 name = "PyFFD"
 version = "0.0.1"
 authors = [
   { name="Theo SENTAGNE", email="theo.sentagne@gmail.com" },
 ]
-description = "Tools to create FFD operator for FEM calculation."
+description = "Tools to create FFD operator from point cloud."
 readme = "README.md"
 requires-python = ">=3.11"
 
