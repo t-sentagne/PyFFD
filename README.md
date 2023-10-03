@@ -26,17 +26,25 @@ $$ b_s = R_s^T ~ b  $$
 n = np.array([[x0, y0], [x1, y1], ...])
 ```
 
-**(2)** Define the number of element for the B-Spline box for each direction :
+**(2)** Define the elements size and degree for the B-Spline box in each direction :
 ```python
-ne_s = np.array([number_x,number_y])
+# Element size per directions
+size = [size_x, size_y]
+# global setting
+size = 0.1 # example
+
+# Element degree per directions
+deg = [deg_x, deg_y]
+# global setting
+deg = 3 # example
 ```
 
 **(3)** Create the B-Spline box python object : 
 ```python
-sbox = pf.FFD(n, ne_s, 3, delta=0.1)
+sbox = pf.FFD(n, size, deg)
 ```
 
 **(4)** Compute the FFD opperator $R_s$ :
 ```python
-Rs = ms.OperatorFFD()
+Rs = sbox.OperatorFFD()
 ```
