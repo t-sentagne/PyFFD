@@ -1,9 +1,9 @@
 # PyFFD
 
-**PyFFD** is an open-source Free Form Deformation (FFD) library for the computation of Finite Element Method (FEM) problem.
+**PyFFD** is an open-source Free Form Deformation (FFD) library.
 
 ## Mathematics
-We define the FFD opperator as $R_s = \left[ B_i \left(  x_j \right) \right]_{(i,j)}$ using B-Spline shape functions such as:
+We define the FFD opperator as $R_s = \left[ B_i \left(  x_j \right) \right]_{(i,j)}$ using B-Spline functions such as:
 
 ```math
 B(x) = 
