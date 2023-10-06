@@ -7,7 +7,8 @@ Created on Mon Oct  2 10:55:32 2023
 import numpy as np
 from .nurbs import Get2dBasisFunctionsAtPts, Get3dBasisFunctionsAtPts
 import scipy.sparse as sps
-
+import scipy.special as spe
+import matplotlib.pyplot as plt
 
 def PreConditioning(N):
     N_tilde = N@N.T
@@ -25,8 +26,46 @@ def KnotVectorScaling(coord_min, coord_max, knot):
     return (coord_max-coord_min) * knot + coord_min
 
 
+def GrevilleAbscissaes(knot_vect, deg):
+    """
+    Compute the Greville abscissaes to return the control points coordinates.
+
+    Parameters
+    ----------
+    knot_vect : np.array
+        The knot vector
+    deg : int
+        Degree of spline
+
+    Returns
+    -------
+    x : np.array
+        Control points coordinates
+
+    """
+    m = len(knot_vect)
+    x = np.zeros(m-deg-1)
+    for k in range(1, m-deg):
+        x[k-1] = 1/deg * np.sum(knot_vect[k:k+deg])
+    return x
+
+
+def MeshGrid(vect):
+    if len(vect) == 2:
+        coord = np.meshgrid(vect[0], vect[1])
+    else:
+        coord = np.meshgrid(vect[0], vect[1], vect[2])
+
+    coord_ravel = []
+    for nb in range(len(coord)):
+        coord_ravel.append(np.ravel(coord[nb]))
+
+    coord_col = np.column_stack(coord_ravel)
+    return coord_col
+
+
 class FFD:
-    def __init__(self, n, size, deg, **kwargs):
+    def __init__(self, npts, size, deg, **kwargs):
         """
         B-Spline box generation class.
 
@@ -42,8 +81,8 @@ class FFD:
             DESCRIPTION.
 
         """
-        self.n = n
-        self.dim = n.shape[1]
+        self.npts = npts
+        self.dim = npts.shape[1]
         if type(deg) == int:
             deg = [deg,] * self.dim
         self.deg = deg
@@ -52,6 +91,9 @@ class FFD:
             print("size =", size)
         self.size = size
 
+        self.e = []
+        self.c = []
+        
         self.crtpts_del = []
         self.limit = 1e-10
         self.precond = True
@@ -98,9 +140,12 @@ class FFD:
     def KnotVectorBuilder(self):
         self.knot_vectors = []
         self.ne = []
+        ctrlpts_posi = []
+        node_posi = []
+        
         for i in range(self.dim):
-            coord_min = self.n[:, i].min() - self.delta[i]/2
-            coord_max = self.n[:, i].max() + self.delta[i]/2
+            coord_min = self.npts[:, i].min() - self.delta[i]/2
+            coord_max = self.npts[:, i].max() + self.delta[i]/2
             length = coord_max - coord_min
             n_el = np.round(length/self.size[i]).astype('int')
             self.ne.append(n_el)
@@ -108,23 +153,38 @@ class FFD:
             knot_vector_init = KnotVectorInit(n_el+1, self.deg[i])
             knot_vector_scaled = KnotVectorScaling(
                 coord_min, coord_max, knot_vector_init)
+
+            ctrlpts_posi.append(GrevilleAbscissaes(
+                knot_vector_scaled, self.deg[i]))
+            
+
+            node_posi.append(
+                knot_vector_scaled[self.deg[i]:len(knot_vector_scaled)-self.deg[i]])
             self.knot_vectors.append(knot_vector_scaled)
+        
+        self.c = MeshGrid(ctrlpts_posi)
+        
+        self.n = MeshGrid(node_posi)
 
     def OperatorFFD(self):
         if self.dim == 2:
-            N = Get2dBasisFunctionsAtPts(self.n[:, 0], self.n[:, 1],
+            N = Get2dBasisFunctionsAtPts(self.npts[:, 0], self.npts[:, 1],
                                          self.knot_vectors[0], self.knot_vectors[1],
                                          self.deg[0], self.deg[1])
         elif self.dim == 3:
-            N = Get3dBasisFunctionsAtPts(self.n[:, 0], self.n[:, 1], self.n[:, 2],
+            N = Get3dBasisFunctionsAtPts(self.npts[:, 0], self.npts[:, 1], self.npts[:, 2],
                                          self.knot_vectors[0], self.knot_vectors[1], self.knot_vectors[2],
                                          self.deg[0], self.deg[1], self.deg[2])
 
         N_reduct = self.ClearControlPoint(N)
+        self.c_del = self.c[self.idc_del].copy()
+        self.c = np.delete(self.c, self.idc_del,0)
+        self.nc = self.c.shape[0]
 
         if self.precond:
             print("Rs preconditioning")
             N_reduct = PreConditioning(N_reduct)
+            self.Rs = N_reduct
         return N_reduct
 
     def ClearControlPoint(self, N):
@@ -136,3 +196,47 @@ class FFD:
         val = np.arange(len(sum_N))
         self.idc_del = np.delete(val, idc)
         return N_reduct
+
+    def PlotPoint(self,del_point=False):
+        if self.dim == 2:
+            plt.figure()
+            plt.plot(self.npts[:, 0], self.npts[:, 1],
+                     'k.', label='Input point cloud')
+            plt.plot(self.c[:, 0], self.c[:,
+                     1], 'bo', label='Control points')
+            if del_point:
+                plt.plot(self.c_del[:, 0], self.c_del[:,
+                         1], 'ro', label='Deleted control points')
+            plt.axis('equal')
+            plt.legend()
+            
+    def Morphing(self, bc):
+        self.c += bc
+        self.npts += self.Rs.T@bc
+    
+    def SelectNodesBox(self):
+        """
+        Selection of all the nodes of a mesh lying in a box defined by two
+        points clics.
+        """
+        plt.figure()
+        self.PlotPoint()
+        figManager = plt.get_current_fig_manager()
+        if hasattr(figManager.window, 'showMaximized'):
+            figManager.window.showMaximized()
+        else:
+            if hasattr(figManager.window, 'maximize'):
+                figManager.resize(figManager.window.maximize())
+        plt.title("Select 2 points... and press enter")
+        pts1 = np.array(plt.ginput(2, timeout=0))
+        plt.close()
+        inside = (
+            (self.c[:, 0] > pts1[0, 0])
+            * (self.c[:, 0] < pts1[1, 0])
+            * (self.c[:, 1] > pts1[1, 1])
+            * (self.c[:, 1] < pts1[0, 1])
+        )
+        (nset,) = np.where(inside)
+        self.PlotPoint()
+        plt.plot(self.c[nset, 0], self.c[nset, 1], "ro")
+        return nset
