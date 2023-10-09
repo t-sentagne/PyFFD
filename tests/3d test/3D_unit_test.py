@@ -6,8 +6,6 @@ Created on Mon Oct  2 18:00:25 2023
 """
 import os
 import sys
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.getcwd())))
-
 import src.PyFFD as pf
 import numpy as np
 import scipy.sparse as sps

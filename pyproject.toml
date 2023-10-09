@@ -22,6 +22,14 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 
+dependencies = [
+    "numpy",
+    "scipy",
+    "matplotlib",
+    "numba"
+]
+
+
 [project.urls]
 "Homepage" = "https://github.com/t-sentagne/PyFFD"
 "Bug Tracker" = "https://github.com/t-sentagne/PyFFD/issues"

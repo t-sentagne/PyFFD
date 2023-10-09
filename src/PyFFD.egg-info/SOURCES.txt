@@ -1,0 +1,10 @@
+README.md
+pyproject.toml
+src/PyFFD/__init__.py
+src/PyFFD/ffd_builder.py
+src/PyFFD/nurbs.py
+src/PyFFD.egg-info/PKG-INFO
+src/PyFFD.egg-info/SOURCES.txt
+src/PyFFD.egg-info/dependency_links.txt
+src/PyFFD.egg-info/requires.txt
+src/PyFFD.egg-info/top_level.txt
