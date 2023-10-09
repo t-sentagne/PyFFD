@@ -7,8 +7,8 @@ Created on Mon Oct  2 10:55:32 2023
 import numpy as np
 from .nurbs import Get2dBasisFunctionsAtPts, Get3dBasisFunctionsAtPts
 import scipy.sparse as sps
-import scipy.special as spe
 import matplotlib.pyplot as plt
+
 
 def PreConditioning(N):
     N_tilde = N@N.T
@@ -93,7 +93,7 @@ class FFD:
 
         self.e = []
         self.c = []
-        
+
         self.crtpts_del = []
         self.limit = 1e-10
         self.precond = True
@@ -142,7 +142,7 @@ class FFD:
         self.ne = []
         ctrlpts_posi = []
         node_posi = []
-        
+
         for i in range(self.dim):
             coord_min = self.npts[:, i].min() - self.delta[i]/2
             coord_max = self.npts[:, i].max() + self.delta[i]/2
@@ -156,17 +156,16 @@ class FFD:
 
             ctrlpts_posi.append(GrevilleAbscissaes(
                 knot_vector_scaled, self.deg[i]))
-            
 
             node_posi.append(
                 knot_vector_scaled[self.deg[i]:len(knot_vector_scaled)-self.deg[i]])
             self.knot_vectors.append(knot_vector_scaled)
-        
+
         self.c = MeshGrid(ctrlpts_posi)
-        
+
         self.n = MeshGrid(node_posi)
 
-    def OperatorFFD(self):
+    def OperatorFFD(self, dim=1):
         if self.dim == 2:
             N = Get2dBasisFunctionsAtPts(self.npts[:, 0], self.npts[:, 1],
                                          self.knot_vectors[0], self.knot_vectors[1],
@@ -178,13 +177,15 @@ class FFD:
 
         N_reduct = self.ClearControlPoint(N)
         self.c_del = self.c[self.idc_del].copy()
-        self.c = np.delete(self.c, self.idc_del,0)
+        self.c = np.delete(self.c, self.idc_del, 0)
         self.nc = self.c.shape[0]
 
         if self.precond:
-            print("Rs preconditioning")
             N_reduct = PreConditioning(N_reduct)
             self.Rs = N_reduct
+
+        if dim != 1:
+            N_reduct = sps.block_diag([N_reduct]*dim, format='csc')
         return N_reduct
 
     def ClearControlPoint(self, N):
@@ -197,7 +198,7 @@ class FFD:
         self.idc_del = np.delete(val, idc)
         return N_reduct
 
-    def PlotPoint(self,del_point=False):
+    def PlotPoint(self, del_point=False):
         if self.dim == 2:
             plt.figure()
             plt.plot(self.npts[:, 0], self.npts[:, 1],
@@ -209,11 +210,11 @@ class FFD:
                          1], 'ro', label='Deleted control points')
             plt.axis('equal')
             plt.legend()
-            
+
     def Morphing(self, bc):
         self.c += bc
         self.npts += self.Rs.T@bc
-    
+
     def SelectNodesBox(self):
         """
         Selection of all the nodes of a mesh lying in a box defined by two
