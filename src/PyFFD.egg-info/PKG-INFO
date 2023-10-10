@@ -1,13 +1,13 @@
 Metadata-Version: 2.1
 Name: PyFFD
-Version: 0.0.2
+Version: 0.0.3
 Summary: Tools to create FFD operator from point cloud.
 Author-email: Theo SENTAGNE <theo.sentagne@gmail.com>
 Project-URL: Homepage, https://github.com/t-sentagne/PyFFD
 Project-URL: Bug Tracker, https://github.com/t-sentagne/PyFFD/issues
 Classifier: Programming Language :: Python :: 3
 Classifier: Operating System :: OS Independent
-Requires-Python: >=3.11
+Requires-Python: >=3.7
 Description-Content-Type: text/markdown
 Requires-Dist: numpy
 Requires-Dist: scipy

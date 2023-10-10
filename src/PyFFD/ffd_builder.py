@@ -8,6 +8,7 @@ import numpy as np
 from .nurbs import Get2dBasisFunctionsAtPts, Get3dBasisFunctionsAtPts
 import scipy.sparse as sps
 import matplotlib.pyplot as plt
+from .vtktools import VTRWriter
 
 
 def PreConditioning(N):
@@ -160,7 +161,8 @@ class FFD:
             node_posi.append(
                 knot_vector_scaled[self.deg[i]:len(knot_vector_scaled)-self.deg[i]])
             self.knot_vectors.append(knot_vector_scaled)
-
+        
+        self.vect_ctrl = ctrlpts_posi
         self.c = MeshGrid(ctrlpts_posi)
 
         self.n = MeshGrid(node_posi)
@@ -241,3 +243,14 @@ class FFD:
         self.PlotPoint()
         plt.plot(self.c[nset, 0], self.c[nset, 1], "ro")
         return nset
+
+    def VTRwriter(self, file_name):
+        x = self.vect_ctrl[0]
+        y = self.vect_ctrl[1]
+        if self.dim == 2:
+            z = np.zeros(1)
+        else:
+            z = self.vect_ctrl[2]
+
+        vtr = VTRWriter(x, y, z)
+        vtr.VTRWriter(file_name)
