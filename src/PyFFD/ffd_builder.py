@@ -87,9 +87,8 @@ class FFD:
         if type(deg) == int:
             deg = [deg,] * self.dim
         self.deg = deg
-        if type(size) == float:
+        if type(size) != list:
             size = [size,] * self.dim
-            print("size =", size)
         self.size = size
 
         self.e = []
@@ -123,14 +122,14 @@ class FFD:
         None.
 
         """
-        if type(delta) == float:
+        if type(delta) != list and type(delta) != str :
             val_delta = [delta,]*self.dim
 
         elif delta == 'fitted':
-            val_delta = np.array([0,]*self.dim)  # FIXME: more complex
+            val_delta = np.array([0,]*self.dim)  
 
         elif delta == 'tight':
-            val_delta = np.array(self.size)*2  # FIXME: more complex
+            val_delta = np.array(self.size)*2
 
         else:
             val_delta = delta
@@ -188,6 +187,7 @@ class FFD:
 
         if dim != 1:
             N_reduct = sps.block_diag([N_reduct]*dim, format='csc')
+        print("FFD operator computed")
         return N_reduct
 
     def ClearControlPoint(self, N):

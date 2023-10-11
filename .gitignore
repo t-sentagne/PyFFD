@@ -3,3 +3,4 @@
 *.pyc
 
 PyFFD/__pychache__/
+dist/
