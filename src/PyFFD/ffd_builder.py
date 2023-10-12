@@ -122,11 +122,11 @@ class FFD:
         None.
 
         """
-        if type(delta) != list and type(delta) != str :
+        if type(delta) != list and type(delta) != str:
             val_delta = [delta,]*self.dim
 
         elif delta == 'fitted':
-            val_delta = np.array([0,]*self.dim)  
+            val_delta = np.array([0,]*self.dim)
 
         elif delta == 'tight':
             val_delta = np.array(self.size)*2
@@ -160,13 +160,14 @@ class FFD:
             node_posi.append(
                 knot_vector_scaled[self.deg[i]:len(knot_vector_scaled)-self.deg[i]])
             self.knot_vectors.append(knot_vector_scaled)
-        
+
         self.vect_ctrl = ctrlpts_posi
         self.c = MeshGrid(ctrlpts_posi)
+        self.nc = self.c.shape[0]
 
         self.n = MeshGrid(node_posi)
 
-    def OperatorFFD(self, dim=1):
+    def OperatorFFD(self, dim_node=1):
         if self.dim == 2:
             N = Get2dBasisFunctionsAtPts(self.npts[:, 0], self.npts[:, 1],
                                          self.knot_vectors[0], self.knot_vectors[1],
@@ -177,16 +178,22 @@ class FFD:
                                          self.deg[0], self.deg[1], self.deg[2])
 
         N_reduct = self.ClearControlPoint(N)
-        self.c_del = self.c[self.idc_del].copy()
-        self.c = np.delete(self.c, self.idc_del, 0)
-        self.nc = self.c.shape[0]
+        # self.c_del = self.c[self.idc_del].copy()
+        self.cr = self.c[self.idc]
+        self.ncr = self.cr.shape[0]
 
         if self.precond:
             N_reduct = PreConditioning(N_reduct)
             self.Rs = N_reduct
 
-        if dim != 1:
-            N_reduct = sps.block_diag([N_reduct]*dim, format='csc')
+        if dim_node != 1:
+            N_reduct = sps.block_diag([N_reduct]*dim_node, format='csc')
+
+            # idc = self.idc.copy()
+            # for nb in range(1, dim_node):
+            #     self.idc = np.concatenate((self.idc, idc+nb*self.nc))
+
+        self.dim_node = dim_node
         print("FFD operator computed")
         return N_reduct
 
@@ -196,8 +203,8 @@ class FFD:
         idc, _ = np.where(sum_N > self.limit)
         N_reduct = N[idc]
 
-        val = np.arange(len(sum_N))
-        self.idc_del = np.delete(val, idc)
+        self.idc = idc
+        self.idc_del = np.delete(np.arange(len(sum_N)), idc)
         return N_reduct
 
     def PlotPoint(self, del_point=False):
@@ -244,7 +251,7 @@ class FFD:
         plt.plot(self.c[nset, 0], self.c[nset, 1], "ro")
         return nset
 
-    def VTRwriter(self, file_name):
+    def VTRwriter(self, file_name, data=dict()):
         x = self.vect_ctrl[0]
         y = self.vect_ctrl[1]
         if self.dim == 2:
@@ -253,4 +260,12 @@ class FFD:
             z = self.vect_ctrl[2]
 
         vtr = VTRWriter(x, y, z)
+
+        if len(data) != 0:
+            for key in data:
+                vtr.addPointData(key, self.dim_node, data[key])
         vtr.VTRWriter(file_name)
+
+    def Reshape(self, vect):
+        vect[self.idc] = vect
+        return vect

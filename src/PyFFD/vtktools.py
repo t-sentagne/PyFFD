@@ -16,7 +16,7 @@ class VTKData:
         self.name = name
         self.numb = numb
         if numb > 1:
-            self.vals = vals.T.ravel()
+            self.vals = vals.ravel()
         else:
             self.vals = vals
 
