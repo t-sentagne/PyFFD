@@ -84,7 +84,7 @@ class FFD:
         """
         self.npts = npts
         self.dim = npts.shape[1]
-        if type(deg) != list and type(deg) != np.ndarray:
+        if type(deg) != list and type(deg) != np.ndarray:  # FIXME: test pas assez générales
             deg = [deg,] * self.dim
         self.deg = deg
         if type(size) != list and type(size) != np.ndarray:
@@ -144,13 +144,15 @@ class FFD:
         node_posi = []
 
         for i in range(self.dim):
-            coord_min = self.npts[:, i].min() - self.delta[i]/2
-            coord_max = self.npts[:, i].max() + self.delta[i]/2
+            coord_min = self.npts[:, i].min() - self.delta[i]
+            coord_max = self.npts[:, i].max() + self.delta[i]
             length = coord_max - coord_min
+            print(self.delta)
+            print(length)
             n_el = np.round(length/self.size[i]).astype('int')
             self.ne.append(n_el)
 
-
+            
             knot_vector_init = KnotVectorInit(n_el+1, self.deg[i])
             knot_vector_scaled = KnotVectorScaling(
                 coord_min, coord_max, knot_vector_init)
