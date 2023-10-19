@@ -84,10 +84,10 @@ class FFD:
         """
         self.npts = npts
         self.dim = npts.shape[1]
-        if type(deg) == int:
+        if type(deg) != list and type(deg) != np.ndarray:
             deg = [deg,] * self.dim
         self.deg = deg
-        if type(size) != list:
+        if type(size) != list and type(size) != np.ndarray:
             size = [size,] * self.dim
         self.size = size
 
@@ -149,6 +149,7 @@ class FFD:
             length = coord_max - coord_min
             n_el = np.round(length/self.size[i]).astype('int')
             self.ne.append(n_el)
+
 
             knot_vector_init = KnotVectorInit(n_el+1, self.deg[i])
             knot_vector_scaled = KnotVectorScaling(
@@ -264,6 +265,10 @@ class FFD:
         if len(data) != 0:
             for key in data:
                 vtr.addPointData(key, self.dim_node, data[key])
+
+        data_del = np.zeros(self.nc)
+        data_del[self.idc_del] = 1
+        vtr.addPointData("Deleted points", 1, data_del)
         vtr.VTRWriter(file_name)
 
     def Reshape(self, vect):
