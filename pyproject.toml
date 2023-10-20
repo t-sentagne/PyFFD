@@ -9,7 +9,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "PyFFD"
-version = "0.1.0"
+version = "0.1.1"
 authors = [
   { name="Theo SENTAGNE", email="theo.sentagne@gmail.com" },
 ]

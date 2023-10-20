@@ -147,8 +147,6 @@ class FFD:
             coord_min = self.npts[:, i].min() - self.delta[i]
             coord_max = self.npts[:, i].max() + self.delta[i]
             length = coord_max - coord_min
-            print(self.delta)
-            print(length)
             n_el = np.round(length/self.size[i]).astype('int')
             self.ne.append(n_el)
 
