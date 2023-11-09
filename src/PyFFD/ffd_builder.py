@@ -66,7 +66,7 @@ def MeshGrid(vect):
 
 
 class FFD:
-    def __init__(self, npts, size, deg, **kwargs):
+    def __init__(self, npts, size, deg, morp=False):
         """
         B-Spline box generation class.
 
@@ -83,6 +83,7 @@ class FFD:
 
         """
         self.npts = npts
+        self.morp = morp
         self.dim = npts.shape[1]
         if type(deg) != list and type(deg) != np.ndarray:  # FIXME: test pas assez générales
             deg = [deg,] * self.dim
@@ -98,6 +99,9 @@ class FFD:
         self.limit = 1e-10
         self.precond = True
         self.SetMarginThickness()
+        
+        self.cr = []
+        self.ncr = 0
 
     def SetThreshold(self, limit):
         self.limit = limit
@@ -107,7 +111,7 @@ class FFD:
             raise NameError("Boolean is expected for 'precond' parameter")
         self.precond = precond
 
-    def SetMarginThickness(self, delta='tight'):
+    def SetMarginThickness(self, delta=0):
         """
 
         Parameters
@@ -177,13 +181,17 @@ class FFD:
             N = Get3dBasisFunctionsAtPts(self.npts[:, 0], self.npts[:, 1], self.npts[:, 2],
                                          self.knot_vectors[0], self.knot_vectors[1], self.knot_vectors[2],
                                          self.deg[0], self.deg[1], self.deg[2])
+        
+        
+        if self.morp:
+            N_reduct = N
+        else:
+            N_reduct = self.ClearControlPoint(N)
+            self.cr = self.c[self.idc]
+            self.ncr = self.cr.shape[0]
 
-        N_reduct = self.ClearControlPoint(N)
-        # self.c_del = self.c[self.idc_del].copy()
-        self.cr = self.c[self.idc]
-        self.ncr = self.cr.shape[0]
-
-        if self.precond:
+        if self.precond and self.morp != True:
+            print("precond")
             N_reduct = PreConditioning(N_reduct)
             self.Rs = N_reduct
 
