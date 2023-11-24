@@ -169,7 +169,7 @@ class FFD:
         self.vect_ctrl = ctrlpts_posi
         self.c = MeshGrid(ctrlpts_posi)
         self.nc = self.c.shape[0]
-
+        self.idc = np.arange(len(self.c))
         self.n = MeshGrid(node_posi)
 
     def OperatorFFD(self, dim_node=1):
@@ -193,7 +193,6 @@ class FFD:
         if self.precond and self.morp != True:
             print("precond")
             N_reduct = PreConditioning(N_reduct)
-            self.Rs = N_reduct
 
         if dim_node != 1:
             N_reduct = sps.block_diag([N_reduct]*dim_node, format='csc')
@@ -203,6 +202,7 @@ class FFD:
             #     self.idc = np.concatenate((self.idc, idc+nb*self.nc))
 
         self.dim_node = dim_node
+        self.Rs = N_reduct
         print("FFD operator computed")
         return N_reduct
 
@@ -213,22 +213,53 @@ class FFD:
         N_reduct = N[idc]
 
         self.idc = idc
-        self.idc_del = np.delete(np.arange(len(sum_N)), idc)
         return N_reduct
 
-    def PlotPoint(self, del_point=False):
+    def GetDeletedControlPoints(self):
+        return np.delete(np.arange(len(self.c)), self.idc)
+
+    def PlotPoint(self, U=None, s=1, del_point=False):
+        if U is None:
+            U = np.zeros((len(self.idc), self.dim))
+        xc = self.c[self.idc] + s * U
+        disp = self.Rs.T @ U
+        xn = self.npts + s * disp
         if self.dim == 2:
             plt.figure()
-            plt.plot(self.npts[:, 0], self.npts[:, 1],
+            plt.plot(xn[:, 0], xn[:, 1],
                      'k.', label='Input point cloud')
-            plt.plot(self.c[:, 0], self.c[:,
-                     1], 'bo', label='Control points')
+            plt.plot(xc[:, 0], xc[:, 1], 'bo', label='Control points')
             if del_point:
-                plt.plot(self.c_del[:, 0], self.c_del[:,
+                idc_del = self.GetDeletedControlPoints()
+                plt.plot(self.c[idc_del, 0], self.c[idc_del,
                          1], 'ro', label='Deleted control points')
             plt.axis('equal')
             plt.legend()
-
+        else:
+            ax = plt.figure().add_subplot(projection='3d')
+            plt.plot(xn[:, 0], xn[:, 1], xn[:, 2],
+                     'k.', label='Input point cloud')
+            plt.plot(xc[:, 0], xc[:, 1], xc[:, 2],
+                     'bo', label='Control points')
+            if del_point:
+                idc_del = self.GetDeletedControlPoints()
+                plt.plot(self.c[idc_del, 0], self.c[idc_del, 1],
+                         self.c[idc_del, 1],
+                         'ro', label='Deleted control points')
+            X = xc[:, 0]
+            Y = xc[:, 1]
+            Z = xc[:, 2]
+            max_range = np.array(
+                [X.max()-X.min(), Y.max()-Y.min(), Z.max()-Z.min()]).max()/2.0
+            mid_x = (X.max()+X.min()) * 0.5
+            mid_y = (Y.max()+Y.min()) * 0.5
+            mid_z = (Z.max()+Z.min()) * 0.5
+            ax.set_xlim(mid_x - max_range, mid_x + max_range)
+            ax.set_ylim(mid_y - max_range, mid_y + max_range)
+            ax.set_zlim(mid_z - max_range, mid_z + max_range)
+            ax.set_xlim(mid_x - max_range, mid_x + max_range)
+            ax.set_ylim(mid_y - max_range, mid_y + max_range)
+            
     def Morphing(self, bc):
         self.c += bc
         self.npts += self.Rs.T@bc
@@ -275,7 +306,8 @@ class FFD:
                 vtr.addPointData(key, self.dim_node, data[key])
 
         data_del = np.zeros(self.nc)
-        data_del[self.idc_del] = 1
+        idc_del = self.GetDeletedControlPoints()
+        data_del[idc_del] = 1
         vtr.addPointData("Deleted points", 1, data_del)
         vtr.VTRWriter(file_name)
 
