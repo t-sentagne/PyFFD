@@ -2,22 +2,7 @@
 
 **PyFFD** is an open-source Free Form Deformation (FFD) library.
 
-## Mathematics
-We define the FFD opperator as $R_s = \left[ B_i \left(  x_j \right) \right]_{(i,j)}$ using B-Spline functions such as:
 
-```math
-B(x) = 
-    \begin{bmatrix}
-        B_1(x) \\
-        B_2(x)\\
-        \vdots\\
-        B_i(x)
-    \end{bmatrix}
-```
-
-We can easily project a vector like :
-
-$$ b_s = R_s^T ~ b  $$
 ## Code
 ### Quick start
 
